@@ -9,7 +9,7 @@ defmodule QuranApiWeb.Router do
     pipe_through :api
 
     get "/quotes", QuotesController, :get_random_quote
-    get "/quotes/:id", QuotesController, :show
+    
   end
 
   # Enable Swoosh mailbox preview in development
