@@ -7,6 +7,7 @@ defmodule QuranApi.Quotes do
   alias QuranApi.Repo
 
   alias QuranApi.Quotes.Quote
+  require IEx
 
   @doc """
   Returns the list of quotes.
@@ -50,6 +51,41 @@ defmodule QuranApi.Quotes do
     |> order_by(fragment("RANDOM()"))
     |> limit(1)
     |> Repo.one()
+  end
+
+  @doc """
+  Gets a quote with its translation.
+
+  ## Examples
+
+    iex> get_quote_with_translation!(123, "en")
+    %{
+      quote: %Quote{},
+      translation: %QuoteTranslation{}
+    }
+
+    iex> get_quote_with_translation!(456, "ar")
+    ** (Ecto.NoResultsError)
+
+  """
+  def get_quote_with_translation!(quote_id, language) do
+    quote = get_quote!(quote_id)
+
+    translation =
+      QuranApi.Quotes.QuoteTranslation
+      |> where([qt], qt.quote_id == ^quote_id and qt.language_code == ^language)
+      |> Repo.one!()
+
+    %{
+      quote: %{
+        id: quote.id,
+        content: quote.content
+      },
+      translation: %{
+        language_code: translation.language_code,
+        content: translation.content
+      }
+    }
   end
 
   @doc """
@@ -118,6 +154,7 @@ defmodule QuranApi.Quotes do
   end
 
   alias QuranApi.Quotes.QuoteTranslation
+  require Ecto.Query
 
   @doc """
   Returns the list of quote_translations.

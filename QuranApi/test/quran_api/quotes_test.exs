@@ -79,7 +79,9 @@ defmodule QuranApi.QuotesTest do
     test "create_quote_translation/1 with valid data creates a quote_translation" do
       valid_attrs = %{language_code: "some language_code", content: "some content"}
 
-      assert {:ok, %QuoteTranslation{} = quote_translation} = Quotes.create_quote_translation(valid_attrs)
+      assert {:ok, %QuoteTranslation{} = quote_translation} =
+               Quotes.create_quote_translation(valid_attrs)
+
       assert quote_translation.language_code == "some language_code"
       assert quote_translation.content == "some content"
     end
@@ -90,23 +92,35 @@ defmodule QuranApi.QuotesTest do
 
     test "update_quote_translation/2 with valid data updates the quote_translation" do
       quote_translation = quote_translation_fixture()
-      update_attrs = %{language_code: "some updated language_code", content: "some updated content"}
 
-      assert {:ok, %QuoteTranslation{} = quote_translation} = Quotes.update_quote_translation(quote_translation, update_attrs)
+      update_attrs = %{
+        language_code: "some updated language_code",
+        content: "some updated content"
+      }
+
+      assert {:ok, %QuoteTranslation{} = quote_translation} =
+               Quotes.update_quote_translation(quote_translation, update_attrs)
+
       assert quote_translation.language_code == "some updated language_code"
       assert quote_translation.content == "some updated content"
     end
 
     test "update_quote_translation/2 with invalid data returns error changeset" do
       quote_translation = quote_translation_fixture()
-      assert {:error, %Ecto.Changeset{}} = Quotes.update_quote_translation(quote_translation, @invalid_attrs)
+
+      assert {:error, %Ecto.Changeset{}} =
+               Quotes.update_quote_translation(quote_translation, @invalid_attrs)
+
       assert quote_translation == Quotes.get_quote_translation!(quote_translation.id)
     end
 
     test "delete_quote_translation/1 deletes the quote_translation" do
       quote_translation = quote_translation_fixture()
       assert {:ok, %QuoteTranslation{}} = Quotes.delete_quote_translation(quote_translation)
-      assert_raise Ecto.NoResultsError, fn -> Quotes.get_quote_translation!(quote_translation.id) end
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Quotes.get_quote_translation!(quote_translation.id)
+      end
     end
 
     test "change_quote_translation/1 returns a quote_translation changeset" do

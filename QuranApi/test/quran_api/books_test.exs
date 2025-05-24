@@ -21,7 +21,11 @@ defmodule QuranApi.BooksTest do
     end
 
     test "create_book/1 with valid data creates a book" do
-      valid_attrs = %{author: "some author", original_title: "some original_title", year_published: 42}
+      valid_attrs = %{
+        author: "some author",
+        original_title: "some original_title",
+        year_published: 42
+      }
 
       assert {:ok, %Book{} = book} = Books.create_book(valid_attrs)
       assert book.author == "some author"
@@ -35,7 +39,12 @@ defmodule QuranApi.BooksTest do
 
     test "update_book/2 with valid data updates the book" do
       book = book_fixture()
-      update_attrs = %{author: "some updated author", original_title: "some updated original_title", year_published: 43}
+
+      update_attrs = %{
+        author: "some updated author",
+        original_title: "some updated original_title",
+        year_published: 43
+      }
 
       assert {:ok, %Book{} = book} = Books.update_book(book, update_attrs)
       assert book.author == "some updated author"

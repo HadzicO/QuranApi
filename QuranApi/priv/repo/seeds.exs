@@ -6,7 +6,8 @@ quran =
   %Book{
     original_title: "Al-Qur'an",
     author: "Allah (via revelation to Prophet Muhammad)",
-    year_published: 610  # Approximate, first revelation
+    # Approximate, first revelation
+    year_published: 610
   }
   |> Repo.insert!()
 
