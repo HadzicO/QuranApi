@@ -12,7 +12,6 @@ defmodule QuranApiWeb.QuotesController do
     translation = conn.params["translation"] || "bs"
 
     quote_with_translation = Quotes.get_quote_with_translation!(id, translation)
-    quote_with_translation |> IO.inspect()
 
     render(conn, "show_translate.json", %{
       quote: quote_with_translation.quote,

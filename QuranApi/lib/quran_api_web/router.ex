@@ -5,7 +5,7 @@ defmodule QuranApiWeb.Router do
     plug :accepts, ["json"]
   end
 
-  scope "/api", QuranApiWeb do
+  scope "/v1", QuranApiWeb do
     pipe_through :api
 
     get "/quotes", QuotesController, :get_random_quote
