@@ -1,0 +1,99 @@
+openapi: 3.0.0
+info:
+  title: Quran API
+  version: 0.0.1
+  description: API for fetching quotes from the Quran with translation.
+
+servers:
+  - url: "{server}/v1"
+    variables:
+      server:
+        default: http://localhost:4000
+
+paths:
+  /quotes:
+    get:
+      tags:
+        - Quran Endpoints
+      summary: Get a random Quran quote
+      description: Returns a random quote from the Quran.
+      responses:
+        '200':
+          description: Successfully retrieved quote.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RandomQuoteResponse"
+
+  /quotes/{id}:
+    get:
+      tags:
+        - Quran Endpoints
+      summary: Get a specific quote with translation
+      description: Returns a specific quote from the Quran with a translation in the requested language.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: translation
+          in: query
+          required: true
+          description: Language code for the translation
+          schema:
+            type: string
+            example: bs
+      responses:
+        '200':
+          description: Successfully retrieved translated quote.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TranslateQuoteResponse"
+
+components:
+  schemas:
+    RandomQuoteResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 7
+              description: ID of the Quran quote
+            content:
+              type: string
+              example: "صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ"
+              description: Quran verse in Arabic
+
+    TranslateQuoteResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            quote:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  example: 1
+                  description: ID of quote
+                content:
+                  type: string
+                  example: "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ"
+                  description: Quran verse in Arabic
+            translation:
+              type: object
+              properties:
+                content:
+                  type: string
+                  example: "U ime Allaha, Milostivog, Samilosnog."
+                  description: Translated content
+                languageCode:
+                  type: string
+                  example: "bs"
+                  description: Language code
