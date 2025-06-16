@@ -1,5 +1,4 @@
 defmodule QuranApiWeb.QuotesJSON do
-
   def show(%{quote: quote}) do
     %{data: data_quote_minimal(quote)}
   end
