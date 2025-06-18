@@ -128,4 +128,64 @@ defmodule QuranApi.QuotesTest do
       assert %Ecto.Changeset{} = Quotes.change_quote_translation(quote_translation)
     end
   end
+
+  describe "language" do
+    alias QuranApi.Quotes.Languages
+
+    import QuranApi.QuotesFixtures
+
+    @invalid_attrs %{language_name: nil, language_code: nil}
+
+    test "list_language/0 returns all language" do
+      languages = languages_fixture()
+      assert Quotes.list_language() == [languages]
+    end
+
+    test "get_languages!/1 returns the languages with given id" do
+      languages = languages_fixture()
+      assert Quotes.get_languages!(languages.id) == languages
+    end
+
+    test "create_languages/1 with valid data creates a languages" do
+      valid_attrs = %{language_name: "some language_name", language_code: "some language_code"}
+
+      assert {:ok, %Languages{} = languages} = Quotes.create_languages(valid_attrs)
+      assert languages.language_name == "some language_name"
+      assert languages.language_code == "some language_code"
+    end
+
+    test "create_languages/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Quotes.create_languages(@invalid_attrs)
+    end
+
+    test "update_languages/2 with valid data updates the languages" do
+      languages = languages_fixture()
+
+      update_attrs = %{
+        language_name: "some updated language_name",
+        language_code: "some updated language_code"
+      }
+
+      assert {:ok, %Languages{} = languages} = Quotes.update_languages(languages, update_attrs)
+      assert languages.language_name == "some updated language_name"
+      assert languages.language_code == "some updated language_code"
+    end
+
+    test "update_languages/2 with invalid data returns error changeset" do
+      languages = languages_fixture()
+      assert {:error, %Ecto.Changeset{}} = Quotes.update_languages(languages, @invalid_attrs)
+      assert languages == Quotes.get_languages!(languages.id)
+    end
+
+    test "delete_languages/1 deletes the languages" do
+      languages = languages_fixture()
+      assert {:ok, %Languages{}} = Quotes.delete_languages(languages)
+      assert_raise Ecto.NoResultsError, fn -> Quotes.get_languages!(languages.id) end
+    end
+
+    test "change_languages/1 returns a languages changeset" do
+      languages = languages_fixture()
+      assert %Ecto.Changeset{} = Quotes.change_languages(languages)
+    end
+  end
 end
