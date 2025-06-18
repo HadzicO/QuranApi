@@ -37,7 +37,7 @@ paths:
           required: true
           schema:
             type: integer
-        - name: translation
+        - name: languageCode
           in: query
           required: true
           description: Language code for the translation
@@ -51,6 +51,17 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TranslateQuoteResponse"
+        '404':
+          description: Translation not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Translation not found"
+                    description: Error message when the translation is not found.
 
 components:
   schemas:

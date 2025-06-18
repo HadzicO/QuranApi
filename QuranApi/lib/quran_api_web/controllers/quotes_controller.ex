@@ -9,12 +9,22 @@ defmodule QuranApiWeb.QuotesController do
   end
 
   def get_quote_with_translation(conn, %{"id" => id}) do
-    translation = Map.get(conn.params, "translation", "bs")
-    quote_with_translation = Quotes.get_quote_with_translation!(id, translation)
+    language = Map.get(conn.params, "languageCode", "bs")
 
-    render(conn, "show_translate.json", %{
-      quote: quote_with_translation.quote,
-      translation: quote_with_translation.translation
-    })
+    case Quotes.get_quote_with_translation!(id, language) do
+      {:ok, quote_with_translation} ->
+        render(conn, "show_translate.json", %{
+          quote: quote_with_translation.quote,
+          translation: quote_with_translation.translation
+        })
+
+        render_error(conn, :not_found, "Translation not found")
+    end
+  end
+
+  defp render_error(conn, status, message) do
+    conn
+    |> put_status(status)
+    |> json(%{error: message})
   end
 end

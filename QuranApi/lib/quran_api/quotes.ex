@@ -74,18 +74,25 @@ defmodule QuranApi.Quotes do
     translation =
       QuranApi.Quotes.QuoteTranslation
       |> where([qt], qt.quote_id == ^quote_id and qt.language_code == ^language)
-      |> Repo.one!()
+      |> Repo.one()
 
-    %{
-      quote: %{
-        id: quote.id,
-        content: quote.content
-      },
-      translation: %{
-        language_code: translation.language_code,
-        content: translation.content
-      }
-    }
+    case translation do
+      nil ->
+        {:error, :translation_not_found}
+
+      translation ->
+        {:ok,
+         %{
+           quote: %{
+             id: quote.id,
+             content: quote.content
+           },
+           translation: %{
+             language_code: translation.language_code,
+             content: translation.content
+           }
+         }}
+    end
   end
 
   @doc """
