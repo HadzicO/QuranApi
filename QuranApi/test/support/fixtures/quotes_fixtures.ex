@@ -33,4 +33,19 @@ defmodule QuranApi.QuotesFixtures do
 
     quote_translation
   end
+
+  @doc """
+  Generate a languages.
+  """
+  def languages_fixture(attrs \\ %{}) do
+    {:ok, languages} =
+      attrs
+      |> Enum.into(%{
+        language_code: "some language_code",
+        language_name: "some language_name"
+      })
+      |> QuranApi.Quotes.create_languages()
+
+    languages
+  end
 end

@@ -1,6 +1,6 @@
 alias QuranApi.Repo
 alias QuranApi.Books.Book
-alias QuranApi.Quotes.{Quote, QuoteTranslation}
+alias QuranApi.Quotes.{Quote, QuoteTranslation, Languages}
 
 quran =
   %Book{
@@ -10,6 +10,12 @@ quran =
     year_published: 610
   }
   |> Repo.insert!()
+
+%Languages{
+  language_name: "bosanski jezik",
+  language_code: "bs"
+}
+|> Repo.insert!()
 
 quotes = [
   {"بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ", "U ime Allaha, Milostivog, Samilosnog."},

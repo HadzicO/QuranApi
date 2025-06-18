@@ -249,4 +249,100 @@ defmodule QuranApi.Quotes do
   def change_quote_translation(%QuoteTranslation{} = quote_translation, attrs \\ %{}) do
     QuoteTranslation.changeset(quote_translation, attrs)
   end
+
+  alias QuranApi.Quotes.Languages
+
+  @doc """
+  Returns the list of language.
+
+  ## Examples
+
+      iex> list_language()
+      [%Languages{}, ...]
+
+  """
+  def list_language do
+    Repo.all(Languages)
+  end
+
+  @doc """
+  Gets a single languages.
+
+  Raises `Ecto.NoResultsError` if the Languages does not exist.
+
+  ## Examples
+
+      iex> get_languages!(123)
+      %Languages{}
+
+      iex> get_languages!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_languages!(id), do: Repo.get!(Languages, id)
+
+  @doc """
+  Creates a languages.
+
+  ## Examples
+
+      iex> create_languages(%{field: value})
+      {:ok, %Languages{}}
+
+      iex> create_languages(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_languages(attrs \\ %{}) do
+    %Languages{}
+    |> Languages.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a languages.
+
+  ## Examples
+
+      iex> update_languages(languages, %{field: new_value})
+      {:ok, %Languages{}}
+
+      iex> update_languages(languages, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_languages(%Languages{} = languages, attrs) do
+    languages
+    |> Languages.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a languages.
+
+  ## Examples
+
+      iex> delete_languages(languages)
+      {:ok, %Languages{}}
+
+      iex> delete_languages(languages)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_languages(%Languages{} = languages) do
+    Repo.delete(languages)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking languages changes.
+
+  ## Examples
+
+      iex> change_languages(languages)
+      %Ecto.Changeset{data: %Languages{}}
+
+  """
+  def change_languages(%Languages{} = languages, attrs \\ %{}) do
+    Languages.changeset(languages, attrs)
+  end
 end
