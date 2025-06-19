@@ -1,0 +1,64 @@
+name: Build, Test, and Format
+
+on:
+    push:
+        branches: [ main ]
+    pull_request:
+        branches: [ main ]
+
+env:
+  MIX_ENV: test
+defaults:
+  run:
+    # Define the default working-directory for all run steps
+    working-directory: QuranApi
+jobs:
+  test-QuranApi:
+    name: Build and test QuranApi
+    runs-on: ubuntu-22.04
+    services:
+      postgres:
+        image: postgres:16.6
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+        - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+    - name: Clone the repository
+      uses: actions/checkout@v4
+
+    - name: Install OTP and Elixir
+      uses: erlef/setup-beam@v1
+      id: beam
+      with:
+        version-file: QuranApi/.tool-versions
+        version-type: strict
+
+    - name: Cache dependencies
+      id: cache-deps
+      uses: actions/cache@v4
+      with:
+        path: |
+          QuranApi/deps
+          QuranApi/_build
+        key: "${{ runner.os }}-\
+              otp-${{ steps.beam.outputs.otp-version }}-\
+              elixir-${{ steps.beam.outputs.elixir-version }}-\
+              ${{ hashFiles('QuranApi/mix.lock') }}"
+
+    - name: Install and compile dependencies
+      if: steps.cache-deps.outputs.cache-hit != 'true'
+      run: |
+        mix deps.get --only test
+        mix deps.compile
+    - name: Check formatting
+      run: mix format --check-formatted
+    - name: Compile
+      run: mix compile
+    - name: Test
+      run: mix test
