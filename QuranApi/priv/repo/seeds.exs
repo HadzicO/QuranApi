@@ -32,7 +32,6 @@ Enum.with_index(quotes, 1)
 |> Enum.each(fn {{ar, bs}, index} ->
   quote =
     %Quote{
-      book_id: quran.id,
       quote_order: index,
       content: ar
     }
