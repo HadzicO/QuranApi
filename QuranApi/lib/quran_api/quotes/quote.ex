@@ -5,7 +5,7 @@ defmodule QuranApi.Quotes.Quote do
   schema "quotes" do
     field :quote_order, :integer
     field :content, :string
-
+    belongs_to :chapter, QuranApi.Chapters.Chapter
     timestamps(type: :utc_datetime)
   end
 

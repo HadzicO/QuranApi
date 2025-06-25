@@ -1,12 +1,12 @@
 alias QuranApi.Repo
 alias QuranApi.Books.Book
+alias QuranApi.Chapters.Chapter
 alias QuranApi.Quotes.{Quote, QuoteTranslation, Languages}
 
 quran =
   %Book{
     original_title: "Al-Qur'an",
     author: "Allah (via revelation to Prophet Muhammad)",
-    # Approximate, first revelation
     year_published: 610
   }
   |> Repo.insert!()
@@ -16,6 +16,16 @@ quran =
   language_code: "bs"
 }
 |> Repo.insert!()
+
+chapter =
+  %Chapter{
+    name: "Al-Fatiha",
+    number: 1,
+    number_of_quote: 7,
+    publication: "Mekka",
+    book_id: quran.id
+  }
+  |> Repo.insert!()
 
 quotes = [
   {"بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ", "U ime Allaha, Milostivog, Samilosnog."},
@@ -33,6 +43,7 @@ Enum.with_index(quotes, 1)
   quote =
     %Quote{
       quote_order: index,
+      chapter_id: chapter.id,
       content: ar
     }
     |> Repo.insert!()
