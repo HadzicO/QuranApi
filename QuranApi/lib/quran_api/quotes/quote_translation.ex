@@ -5,7 +5,7 @@ defmodule QuranApi.Quotes.QuoteTranslation do
   schema "quote_translations" do
     field :language_code, :string
     field :content, :string
-    field :quote_id, :id
+    belongs_to :quote, QuranApi.Quotes.Quote
 
     timestamps(type: :utc_datetime)
   end

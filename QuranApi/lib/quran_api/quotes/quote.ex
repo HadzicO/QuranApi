@@ -6,6 +6,7 @@ defmodule QuranApi.Quotes.Quote do
     field :quote_order, :integer
     field :content, :string
     belongs_to :chapter, QuranApi.Chapters.Chapter
+    has_many :quote_translations, QuranApi.Quotes.QuoteTranslation, foreign_key: :quote_id
     timestamps(type: :utc_datetime)
   end
 

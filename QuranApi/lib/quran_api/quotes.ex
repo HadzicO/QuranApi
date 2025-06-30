@@ -7,7 +7,6 @@ defmodule QuranApi.Quotes do
   alias QuranApi.Repo
 
   alias QuranApi.Quotes.Quote
-  require IEx
 
   @doc """
   Returns the list of quotes.

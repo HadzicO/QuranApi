@@ -7,7 +7,7 @@ defmodule QuranApi.Chapters.Chapter do
     field :number, :integer
     field :number_of_quote, :integer
     field :publication, :string
-    field :book_id, :id
+    belongs_to :book, QuranApi.Books.Book
     has_many :quotes, QuranApi.Quotes.Quote
     timestamps(type: :utc_datetime)
   end
@@ -15,7 +15,7 @@ defmodule QuranApi.Chapters.Chapter do
   @doc false
   def changeset(chapter, attrs) do
     chapter
-    |> cast(attrs, [:name, :number, :number_of_quote, :publication])
-    |> validate_required([:name, :number, :number_of_quote, :publication])
+    |> cast(attrs, [:name, :number, :number_of_quote, :publication, :book_id])
+    |> validate_required([:name, :number, :number_of_quote, :publication, :book_id])
   end
 end

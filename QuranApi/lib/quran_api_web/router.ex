@@ -10,6 +10,7 @@ defmodule QuranApiWeb.Router do
 
     get "/quotes", QuotesController, :get_random_quote
     get "/quotes/:id", QuotesController, :get_quote_with_translation
+    post "/chapters", ChaptersController, :get_chapter_by_name
   end
 
   # Enable Swoosh mailbox preview in development
