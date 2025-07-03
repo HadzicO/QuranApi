@@ -4,10 +4,10 @@ defmodule QuranApi.Chapters do
   """
 
   import Ecto.Query, warn: false
-  alias QuranApi.Repo
   alias QuranApi.Books.Book
   alias QuranApi.Chapters.Chapter
   alias QuranApi.Queries
+  alias QuranApi.Repo
 
   # List all chapters
   def list_chapters do
