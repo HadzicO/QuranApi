@@ -1,4 +1,8 @@
 defmodule QuranApi.Chapters do
+  @moduledoc """
+  The Chapters context.
+  """
+
   import Ecto.Query, warn: false
   alias QuranApi.Repo
   alias QuranApi.Books.Book

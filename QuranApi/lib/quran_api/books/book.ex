@@ -1,4 +1,8 @@
 defmodule QuranApi.Books.Book do
+  @moduledoc """
+  Represents a book in the Quran API.
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 

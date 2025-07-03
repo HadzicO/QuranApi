@@ -1,4 +1,8 @@
 defmodule QuranApi.Chapters.Chapter do
+  @moduledoc """
+  Represents a chapter in the Quran.
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 

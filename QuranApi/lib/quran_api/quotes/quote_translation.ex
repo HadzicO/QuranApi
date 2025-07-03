@@ -1,4 +1,8 @@
 defmodule QuranApi.Quotes.QuoteTranslation do
+  @moduledoc """
+  Represents a translation of a quote in the Quran.
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 
