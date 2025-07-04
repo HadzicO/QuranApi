@@ -3,8 +3,8 @@ defmodule QuranApi.Queries do
   Provides query functions for QuranApi.
   """
   import Ecto.Query
-  alias QuranApi.Chapters.Chapter
   alias QuranApi.Books.Book
+  alias QuranApi.Chapters.Chapter
   alias QuranApi.Quotes.Quote
   alias QuranApi.Repo
 
