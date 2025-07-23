@@ -50,7 +50,10 @@ defmodule QuranApi.MixProject do
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
-      {:credo, "~> 1.7", only: [:dev, :test], runtime: false}
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:bcrypt_elixir, "~> 3.0"},
+      {:guardian, "~> 2.3"},
+      {:comeonin, "~> 5.3"}
     ]
   end
 
