@@ -41,6 +41,11 @@ config :phoenix, :json_library, Jason
 
 config :quran_api, dev_routes: true
 
+# Configures Guardian
+config :quran_api, QuranApi.Guardian,
+  issuer: "quran_api",
+  secret_key: "replace-this-with-a-secure-secret-key"
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"
