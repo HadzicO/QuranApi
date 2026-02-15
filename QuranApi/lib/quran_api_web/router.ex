@@ -5,6 +5,12 @@ defmodule QuranApiWeb.Router do
     plug :accepts, ["json"]
   end
 
+  scope "/", QuranApiWeb do
+    pipe_through :api
+
+    get "/", PageController, :index
+  end
+
   scope "/v1", QuranApiWeb do
     pipe_through :api
 
