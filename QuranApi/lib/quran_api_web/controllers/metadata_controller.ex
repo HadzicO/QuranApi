@@ -4,7 +4,7 @@ defmodule QuranApiWeb.MetadataController do
   """
   use QuranApiWeb, :controller
 
-  alias QuranApi.{Quran, Cache}
+  alias QuranApi.{Cache, Quran}
 
   action_fallback QuranApiWeb.FallbackController
 

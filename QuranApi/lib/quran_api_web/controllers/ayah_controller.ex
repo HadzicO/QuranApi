@@ -44,7 +44,7 @@ defmodule QuranApiWeb.AyahController do
   @doc """
   POST /api/v1/ayahs/batch
   Gets multiple ayahs by their references.
-  Request body: ["2:255", "36:58", "112:1"]
+  Request body: ["2:255", "36:58", "112:1"] or %{"references" => ["2:255", "36:58", "112:1"]}
   """
   def batch(conn, params) when is_list(params) do
     language = conn.query_params["language"]
@@ -56,6 +56,10 @@ defmodule QuranApiWeb.AyahController do
       {:ok, ayahs} -> render(conn, :index, ayahs: ayahs)
       {:error, errors} -> {:error, errors}
     end
+  end
+
+  def batch(conn, %{"references" => references}) when is_list(references) do
+    batch(conn, references)
   end
 
   def batch(_conn, _params) do

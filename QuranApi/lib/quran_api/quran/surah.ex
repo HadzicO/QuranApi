@@ -38,7 +38,7 @@ defmodule QuranApi.Quran.Surah do
   @doc """
   Changeset for creating or updating a Surah.
   """
-  @spec changeset(t(), map()) :: Ecto.Changeset.t()
+  @spec changeset(Ecto.Schema.t(), map()) :: Ecto.Changeset.t()
   def changeset(surah, attrs) do
     surah
     |> cast(attrs, [

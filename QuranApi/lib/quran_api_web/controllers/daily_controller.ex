@@ -4,7 +4,7 @@ defmodule QuranApiWeb.DailyController do
   """
   use QuranApiWeb, :controller
 
-  alias QuranApi.{Quran, Cache}
+  alias QuranApi.{Cache, Quran}
   import Ecto.Query
 
   action_fallback QuranApiWeb.FallbackController

@@ -31,7 +31,7 @@ defmodule QuranApi.Quran.Tafsir do
   @doc """
   Changeset for creating or updating a Tafsir.
   """
-  @spec changeset(t(), map()) :: Ecto.Changeset.t()
+  @spec changeset(Ecto.Schema.t(), map()) :: Ecto.Changeset.t()
   def changeset(tafsir, attrs) do
     tafsir
     |> cast(attrs, [:ayah_id, :author, :language_code, :text])

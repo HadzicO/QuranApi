@@ -1,11 +1,11 @@
 defmodule QuranApiWeb.SearchControllerTest do
   use QuranApiWeb.ConnCase, async: true
 
-  alias QuranApi.Quran.{Surah, Ayah, Translation}
+  alias QuranApi.Quran.{Ayah, Surah, Translation}
 
   setup do
     surah =
-      Repo.insert!(%Surah{
+      QuranApi.Repo.insert!(%Surah{
         chapter_number: 1,
         name_ar: "الفاتحة",
         name_en: "Al-Fatiha",
@@ -14,7 +14,7 @@ defmodule QuranApiWeb.SearchControllerTest do
       })
 
     ayah =
-      Repo.insert!(%Ayah{
+      QuranApi.Repo.insert!(%Ayah{
         surah_id: surah.id,
         ayah_number: 1,
         global_number: 1,
@@ -22,7 +22,7 @@ defmodule QuranApiWeb.SearchControllerTest do
       })
 
     translation =
-      Repo.insert!(%Translation{
+      QuranApi.Repo.insert!(%Translation{
         ayah_id: ayah.id,
         language_code: "en",
         translator: "Sahih International",

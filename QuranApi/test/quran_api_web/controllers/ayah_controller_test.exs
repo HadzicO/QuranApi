@@ -1,11 +1,11 @@
 defmodule QuranApiWeb.AyahControllerTest do
   use QuranApiWeb.ConnCase, async: true
 
-  alias QuranApi.Quran.{Surah, Ayah}
+  alias QuranApi.Quran.{Ayah, Surah}
 
   setup do
     surah =
-      Repo.insert!(%Surah{
+      QuranApi.Repo.insert!(%Surah{
         chapter_number: 2,
         name_ar: "البقرة",
         name_en: "Al-Baqarah",
@@ -14,7 +14,7 @@ defmodule QuranApiWeb.AyahControllerTest do
       })
 
     ayah =
-      Repo.insert!(%Ayah{
+      QuranApi.Repo.insert!(%Ayah{
         surah_id: surah.id,
         ayah_number: 255,
         global_number: 255,
@@ -34,7 +34,7 @@ defmodule QuranApiWeb.AyahControllerTest do
 
     test "returns 404 when id is invalid", %{conn: conn} do
       conn = get(conn, ~p"/api/v1/ayahs/999999")
-      assert %{"error" => _} = json_response(conn, 404)
+      assert %{"errors" => _} = json_response(conn, 404)
     end
   end
 
@@ -48,20 +48,20 @@ defmodule QuranApiWeb.AyahControllerTest do
 
     test "returns 404 when ayah does not exist", %{conn: conn, surah: surah} do
       conn = get(conn, ~p"/api/v1/surahs/#{surah.id}/ayahs/9999")
-      assert %{"error" => _} = json_response(conn, 404)
+      assert %{"errors" => _} = json_response(conn, 404)
     end
   end
 
   describe "POST /api/v1/ayahs/batch" do
     test "returns multiple ayahs by references", %{conn: conn, surah: surah, ayah: ayah} do
-      conn = post(conn, ~p"/api/v1/ayahs/batch", ["2:255"])
+      conn = post(conn, ~p"/api/v1/ayahs/batch", %{"references" => ["2:255"]})
       assert %{"data" => ayahs} = json_response(conn, 200)
       assert length(ayahs) == 1
     end
 
     test "returns error for invalid reference format", %{conn: conn} do
-      conn = post(conn, ~p"/api/v1/ayahs/batch", ["invalid"])
-      assert %{"error" => _} = json_response(conn, 400)
+      conn = post(conn, ~p"/api/v1/ayahs/batch", %{"references" => ["invalid"]})
+      assert %{"errors" => _} = json_response(conn, 400)
     end
 
     test "returns error for non-array input", %{conn: conn} do

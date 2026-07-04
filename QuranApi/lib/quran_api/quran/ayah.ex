@@ -5,7 +5,7 @@ defmodule QuranApi.Quran.Ayah do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias QuranApi.Quran.{Surah, Translation, Tafsir, Audio, AyahTopic}
+  alias QuranApi.Quran.{Audio, AyahTopic, Surah, Tafsir, Translation}
 
   @type t :: %__MODULE__{
           id: integer(),
@@ -40,7 +40,7 @@ defmodule QuranApi.Quran.Ayah do
   @doc """
   Changeset for creating or updating an Ayah.
   """
-  @spec changeset(t(), map()) :: Ecto.Changeset.t()
+  @spec changeset(Ecto.Schema.t(), map()) :: Ecto.Changeset.t()
   def changeset(ayah, attrs) do
     ayah
     |> cast(attrs, [:surah_id, :ayah_number, :global_number, :arabic_text])

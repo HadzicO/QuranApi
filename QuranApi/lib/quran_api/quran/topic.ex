@@ -29,7 +29,7 @@ defmodule QuranApi.Quran.Topic do
   @doc """
   Changeset for creating or updating a Topic.
   """
-  @spec changeset(t(), map()) :: Ecto.Changeset.t()
+  @spec changeset(Ecto.Schema.t(), map()) :: Ecto.Changeset.t()
   def changeset(topic, attrs) do
     topic
     |> cast(attrs, [:slug, :name])

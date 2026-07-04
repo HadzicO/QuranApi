@@ -27,7 +27,7 @@ defmodule QuranApi.Quran.AyahTopic do
   @doc """
   Changeset for creating or updating an AyahTopic association.
   """
-  @spec changeset(t(), map()) :: Ecto.Changeset.t()
+  @spec changeset(Ecto.Schema.t(), map()) :: Ecto.Changeset.t()
   def changeset(ayah_topic, attrs) do
     ayah_topic
     |> cast(attrs, [:ayah_id, :topic_id])

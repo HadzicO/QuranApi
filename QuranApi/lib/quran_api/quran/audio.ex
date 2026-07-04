@@ -31,7 +31,7 @@ defmodule QuranApi.Quran.Audio do
   @doc """
   Changeset for creating or updating Audio.
   """
-  @spec changeset(t(), map()) :: Ecto.Changeset.t()
+  @spec changeset(Ecto.Schema.t(), map()) :: Ecto.Changeset.t()
   def changeset(audio, attrs) do
     audio
     |> cast(attrs, [:ayah_id, :reciter, :audio_url, :duration])

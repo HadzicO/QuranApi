@@ -2,7 +2,7 @@ defmodule QuranApi.QuranTest do
   use QuranApi.DataCase, async: true
 
   alias QuranApi.Quran
-  alias QuranApi.Quran.{Surah, Ayah, Translation, Topic}
+  alias QuranApi.Quran.{Ayah, AyahTopic, Surah, Topic, Translation}
 
   describe "surahs" do
     @valid_surah_attrs %{
@@ -15,12 +15,12 @@ defmodule QuranApi.QuranTest do
     }
 
     test "list_surahs/1 returns all surahs" do
-      surah = insert(:surah)
+      surah = insert(:surah, %{})
       assert length(Quran.list_surahs()) >= 1
     end
 
     test "get_surah/1 returns the surah with given id" do
-      surah = insert(:surah)
+      surah = insert(:surah, %{})
       assert Quran.get_surah(surah.id).id == surah.id
     end
 
@@ -43,7 +43,7 @@ defmodule QuranApi.QuranTest do
 
   describe "ayahs" do
     setup do
-      surah = insert(:surah)
+      surah = insert(:surah, %{})
       {:ok, surah: surah}
     end
 
@@ -90,7 +90,7 @@ defmodule QuranApi.QuranTest do
 
   describe "translations" do
     setup do
-      surah = insert(:surah)
+      surah = insert(:surah, %{})
       ayah = insert(:ayah, surah: surah)
       {:ok, surah: surah, ayah: ayah}
     end
@@ -116,13 +116,13 @@ defmodule QuranApi.QuranTest do
 
   describe "topics" do
     setup do
-      surah = insert(:surah)
+      surah = insert(:surah, %{})
       ayah = insert(:ayah, surah: surah)
       {:ok, surah: surah, ayah: ayah}
     end
 
     test "list_topics/0 returns all topics" do
-      topic = insert(:topic)
+      topic = insert(:topic, %{})
       topics = Quran.list_topics()
       assert length(topics) >= 1
     end
@@ -133,7 +133,7 @@ defmodule QuranApi.QuranTest do
     end
 
     test "get_ayahs_by_topic/2 returns ayahs for a topic", %{ayah: ayah} do
-      topic = insert(:topic)
+      topic = insert(:topic, %{})
       insert(:ayah_topic, ayah: ayah, topic: topic)
       ayahs = Quran.get_ayahs_by_topic(topic.slug)
       assert length(ayahs) >= 1
@@ -142,7 +142,7 @@ defmodule QuranApi.QuranTest do
 
   describe "search" do
     setup do
-      surah = insert(:surah)
+      surah = insert(:surah, %{})
       ayah = insert(:ayah, surah: surah, arabic_text: "بِسْمِ اللَّهِ")
       translation = insert(:translation, ayah: ayah, text: "In the name of Allah")
       {:ok, surah: surah, ayah: ayah, translation: translation}
@@ -160,70 +160,78 @@ defmodule QuranApi.QuranTest do
   end
 
   # Factory helper functions
-  defp insert(schema, attrs \\ %{}) do
-    case schema do
-      :surah ->
-        default_attrs = %{
-          chapter_number: :rand.uniform(114),
-          name_ar: "سورة",
-          name_en: "Surah",
-          revelation_type: "Meccan",
-          verses_count: 10
-        }
+  defp insert(:surah, attrs), do: insert_surah(attrs)
+  defp insert(:ayah, attrs), do: insert_ayah(attrs)
+  defp insert(:translation, attrs), do: insert_translation(attrs)
+  defp insert(:topic, attrs), do: insert_topic(attrs)
+  defp insert(:ayah_topic, attrs), do: insert_ayah_topic(attrs)
 
-        %Surah{}
-        |> Surah.changeset(Map.merge(default_attrs, Map.new(attrs)))
-        |> Repo.insert!()
+  defp insert_surah(attrs) do
+    default_attrs = %{
+      chapter_number: :rand.uniform(114),
+      name_ar: "سورة",
+      name_en: "Surah",
+      revelation_type: "Meccan",
+      verses_count: 10
+    }
 
-      :ayah ->
-        default_attrs = %{
-          ayah_number: 1,
-          global_number: :rand.uniform(6236),
-          arabic_text: "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ"
-        }
+    %Surah{}
+    |> Surah.changeset(Map.merge(default_attrs, Map.new(attrs)))
+    |> Repo.insert!()
+  end
 
-        surah = attrs[:surah] || insert(:surah)
-        attrs = Map.delete(attrs, :surah)
+  defp insert_ayah(attrs) do
+    attrs = Map.new(attrs)
 
-        %Ayah{}
-        |> Ayah.changeset(
-          Map.merge(default_attrs, Map.merge(%{surah_id: surah.id}, Map.new(attrs)))
-        )
-        |> Repo.insert!()
+    default_attrs = %{
+      ayah_number: 1,
+      global_number: :rand.uniform(6236),
+      arabic_text: "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ"
+    }
 
-      :translation ->
-        default_attrs = %{
-          language_code: "en",
-          translator: "Test Translator",
-          text: "Test translation text"
-        }
+    surah = attrs[:surah] || insert(:surah, %{})
+    attrs = Map.delete(attrs, :surah)
 
-        ayah = attrs[:ayah] || insert(:ayah)
-        attrs = Map.delete(attrs, :ayah)
+    %Ayah{}
+    |> Ayah.changeset(Map.merge(default_attrs, Map.merge(%{surah_id: surah.id}, attrs)))
+    |> Repo.insert!()
+  end
 
-        %Translation{}
-        |> Translation.changeset(
-          Map.merge(default_attrs, Map.merge(%{ayah_id: ayah.id}, Map.new(attrs)))
-        )
-        |> Repo.insert!()
+  defp insert_translation(attrs) do
+    attrs = Map.new(attrs)
 
-      :topic ->
-        default_attrs = %{
-          slug: "test-topic-#{:rand.uniform(10000)}",
-          name: "Test Topic"
-        }
+    default_attrs = %{
+      language_code: "en",
+      translator: "Test Translator",
+      text: "Test translation text"
+    }
 
-        %Topic{}
-        |> Topic.changeset(Map.merge(default_attrs, Map.new(attrs)))
-        |> Repo.insert!()
+    ayah = attrs[:ayah] || insert(:ayah, %{})
+    attrs = Map.delete(attrs, :ayah)
 
-      :ayah_topic ->
-        ayah = attrs[:ayah] || insert(:ayah)
-        topic = attrs[:topic] || insert(:topic)
+    %Translation{}
+    |> Translation.changeset(Map.merge(default_attrs, Map.merge(%{ayah_id: ayah.id}, attrs)))
+    |> Repo.insert!()
+  end
 
-        %QuranApi.Quran.AyahTopic{}
-        |> QuranApi.Quran.AyahTopic.changeset(%{ayah_id: ayah.id, topic_id: topic.id})
-        |> Repo.insert!()
-    end
+  defp insert_topic(attrs) do
+    default_attrs = %{
+      slug: "test-topic-#{:rand.uniform(10000)}",
+      name: "Test Topic"
+    }
+
+    %Topic{}
+    |> Topic.changeset(Map.merge(default_attrs, Map.new(attrs)))
+    |> Repo.insert!()
+  end
+
+  defp insert_ayah_topic(attrs) do
+    attrs = Map.new(attrs)
+    ayah = attrs[:ayah] || insert(:ayah, %{})
+    topic = attrs[:topic] || insert(:topic, %{})
+
+    %AyahTopic{}
+    |> AyahTopic.changeset(%{ayah_id: ayah.id, topic_id: topic.id})
+    |> Repo.insert!()
   end
 end

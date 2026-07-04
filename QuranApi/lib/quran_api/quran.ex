@@ -5,7 +5,7 @@ defmodule QuranApi.Quran do
 
   import Ecto.Query, warn: false
   alias QuranApi.Repo
-  alias QuranApi.Quran.{Surah, Ayah, Translation, Tafsir, Audio, Topic, AyahTopic}
+  alias QuranApi.Quran.{Audio, Ayah, AyahTopic, Surah, Tafsir, Topic, Translation}
 
   # ==================== Surah Functions ====================
 
@@ -240,33 +240,24 @@ defmodule QuranApi.Quran do
           {:ok, [Ayah.t()]} | {:error, [String.t()]}
   def get_ayahs_by_references(references, opts \\ []) when is_list(references) do
     preload = Keyword.get(opts, :preload, [])
-
-    results =
-      Enum.map(references, fn ref ->
-        case parse_ayah_reference(ref) do
-          {:ok, surah_num, ayah_num} ->
-            case get_surah_by_number(surah_num) do
-              nil ->
-                {:error, "Surah #{surah_num} not found"}
-
-              surah ->
-                case get_ayah_by_surah_and_number(surah.id, ayah_num, preload: preload) do
-                  nil -> {:error, "Ayah #{ref} not found"}
-                  ayah -> {:ok, ayah}
-                end
-            end
-
-          {:error, reason} ->
-            {:error, reason}
-        end
-      end)
-
+    results = Enum.map(references, &fetch_ayah_by_reference(&1, preload))
     errors = Enum.filter(results, &match?({:error, _}, &1))
 
     if Enum.empty?(errors) do
       {:ok, Enum.map(results, fn {:ok, ayah} -> ayah end)}
     else
       {:error, Enum.map(errors, fn {:error, msg} -> msg end)}
+    end
+  end
+
+  defp fetch_ayah_by_reference(ref, preload) do
+    with {:ok, surah_num, ayah_num} <- parse_ayah_reference(ref),
+         %Surah{id: surah_id} <- get_surah_by_number(surah_num),
+         %Ayah{} = ayah <- get_ayah_by_surah_and_number(surah_id, ayah_num, preload: preload) do
+      {:ok, ayah}
+    else
+      {:error, reason} -> {:error, reason}
+      nil -> {:error, "Ayah #{ref} not found"}
     end
   end
 
@@ -660,7 +651,8 @@ defmodule QuranApi.Quran do
           results: [map()],
           total: integer(),
           page: integer(),
-          per_page: integer()
+          per_page: integer(),
+          total_pages: integer()
         }
   def search(opts) do
     query = Keyword.get(opts, :q)
@@ -715,7 +707,7 @@ defmodule QuranApi.Quran do
         })
       end
 
-    total = Repo.aggregate(base_query, :count, :ayah_id, distinct: true)
+    total = Repo.aggregate(base_query, :count, :id, distinct: true)
 
     results =
       base_query
@@ -796,18 +788,16 @@ defmodule QuranApi.Quran do
       {114, 6}
     ]
 
-    Enum.flat_map(featured_references, fn {surah_num, ayah_num} ->
-      case get_surah_by_number(surah_num) do
-        nil ->
-          []
+    Enum.flat_map(featured_references, &fetch_featured_ayah(&1, preload))
+  end
 
-        surah ->
-          case get_ayah_by_surah_and_number(surah.id, ayah_num, preload: preload) do
-            nil -> []
-            ayah -> [ayah]
-          end
-      end
-    end)
+  defp fetch_featured_ayah({surah_num, ayah_num}, preload) do
+    with %Surah{id: surah_id} <- get_surah_by_number(surah_num),
+         %Ayah{} = ayah <- get_ayah_by_surah_and_number(surah_id, ayah_num, preload: preload) do
+      [ayah]
+    else
+      _ -> []
+    end
   end
 
   # ==================== Metadata & Stats ====================

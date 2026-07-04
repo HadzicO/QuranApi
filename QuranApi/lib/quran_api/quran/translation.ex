@@ -31,7 +31,7 @@ defmodule QuranApi.Quran.Translation do
   @doc """
   Changeset for creating or updating a Translation.
   """
-  @spec changeset(t(), map()) :: Ecto.Changeset.t()
+  @spec changeset(Ecto.Schema.t(), map()) :: Ecto.Changeset.t()
   def changeset(translation, attrs) do
     translation
     |> cast(attrs, [:ayah_id, :language_code, :translator, :text])
