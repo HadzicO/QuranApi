@@ -1,0 +1,195 @@
+openapi: 3.0.0
+info:
+  title: Quran API
+  version: 0.0.1
+  description: API for fetching quotes from the Quran with translation.
+
+servers:
+  - url: "{server}/v1"
+    variables:
+      server:
+        default: http://localhost:4000
+
+paths:
+  /quotes:
+    get:
+      tags:
+        - Quran Endpoints
+      summary: Get a random Quran quote
+      description: Returns a random quote from the Quran.
+      responses:
+        '200':
+          description: Successfully retrieved quote.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RandomQuoteResponse"
+
+  /quotes/{id}:
+    get:
+      tags:
+        - Quran Endpoints
+      summary: Get a specific quote with translation
+      description: Returns a specific quote from the Quran with a translation in the requested language.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: languageCode
+          in: query
+          required: true
+          description: Language code for the translation
+          schema:
+            type: string
+            example: bs
+      responses:
+        '200':
+          description: Successfully retrieved translated quote.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TranslatedQuoteResponse"
+        '404':
+          description: Translation not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Translation not found"
+
+  /chapters:
+    post:
+      tags:
+        - Quran Endpoints
+      summary: Get chapters with quotes and translations
+      description: Returns chapters with quotes and translations based on provided filters.
+      parameters:
+        - name: quote_from
+          in: query
+          required: false
+          description: Starting quote number (inclusive)
+          schema:
+            type: integer
+            example: 1
+        - name: quote_to
+          in: query
+          required: false
+          description: Ending quote number (inclusive)
+          schema:
+            type: integer
+            example: 7
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                book_name:
+                  type: string
+                  example: "Al-Qur'an"
+                chapter_name:
+                  type: string
+                  example: "Al-Fatiha"
+                language_code:
+                  type: string
+                  example: "bs"
+      responses:
+        '200':
+          description: Successfully retrieved chapter and quotes.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChapterWithQuotesResponse"
+
+components:
+  schemas:
+    RandomQuoteResponse:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/QuoteSimple"
+
+    TranslatedQuoteResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            quote:
+              $ref: "#/components/schemas/QuoteSimple"
+            translation:
+              $ref: "#/components/schemas/Translation"
+
+    ChapterWithQuotesResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            chapter:
+              $ref: "#/components/schemas/Chapter"
+            quotes:
+              type: array
+              items:
+                $ref: "#/components/schemas/QuoteWithTranslation"
+
+    Chapter:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        book_name:
+          type: string
+          example: "Al-Qur'an"
+        chapter_name:
+          type: string
+          example: "Al-Fatiha"
+        chapter_number:
+          type: integer
+          example: 1
+        number_of_quote:
+          type: integer
+          example: 7
+        publication:
+          type: string
+          example: "Mekka"
+
+    QuoteSimple:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 7
+        content:
+          type: string
+          example: "صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ..."
+
+    QuoteWithTranslation:
+      type: object
+      properties:
+        quote_order:
+          type: integer
+          example: 1
+        content:
+          type: string
+          example: "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ"
+        translation:
+          type: string
+          example: "U ime Allaha, Milostivog, Samilosnog."
+
+    Translation:
+      type: object
+      properties:
+        content:
+          type: string
+          example: "U ime Allaha, Milostivog, Samilosnog."
+        language_code:
+          type: string
+          example: "bs"
