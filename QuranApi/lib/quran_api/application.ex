@@ -10,6 +10,7 @@ defmodule QuranApi.Application do
     children = [
       QuranApiWeb.Telemetry,
       QuranApi.Repo,
+      QuranApi.Cache,
       {DNSCluster, query: Application.get_env(:quran_api, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: QuranApi.PubSub},
       # Start the Finch HTTP client for sending emails
