@@ -1,0 +1,1029 @@
+openapi: 3.0.0
+info:
+  title: Quran REST API
+  version: 1.0.0
+  description: |
+    Production-ready RESTful API for accessing Quranic data with translations, tafsir, audio, and thematic categorization.
+    
+    **Features:**
+    - 114 Surahs with Arabic text
+    - 6236 Ayahs with translations
+    - Multi-language support
+    - Tafsir (exegesis) 
+    - Audio recitations
+    - Topic-based categorization
+    - Full-text search
+    - Daily verse (cached)
+    - Random verse generation
+    
+  contact:
+    name: API Support
+    email: support@quranapi.example.com
+
+servers:
+  - url: http://localhost:4000/api/v1
+    description: Local development server
+  - url: https://api.quran.example.com/v1
+    description: Production server
+
+tags:
+  - name: Surahs
+    description: Surah (chapter) endpoints
+  - name: Ayahs
+    description: Ayah (verse) endpoints
+  - name: Special
+    description: Random and daily verses
+  - name: Search
+    description: Full-text search
+  - name: Translations
+    description: Translation endpoints
+  - name: Tafsir
+    description: Tafsir (exegesis) endpoints
+  - name: Audio
+    description: Audio recitation endpoints
+  - name: Topics
+    description: Topic-based categorization
+  - name: Metadata
+    description: API metadata and statistics
+
+paths:
+  /surahs:
+    get:
+      tags:
+        - Surahs
+      summary: List all surahs
+      description: Returns a paginated list of all surahs (chapters)
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 114
+            maximum: 114
+          description: Maximum number of results
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Number of results to skip
+      responses:
+        '200':
+          description: Successfully retrieved surahs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Surah'
+              example:
+                data:
+                  - id: 1
+                    chapter_number: 1
+                    name_ar: "الفاتحة"
+                    name_en: "Al-Fatiha"
+                    name_bs: "El-Fatiha"
+                    revelation_type: "Meccan"
+                    verses_count: 7
+
+  /surahs/{id}:
+    get:
+      tags:
+        - Surahs
+      summary: Get a specific surah
+      description: Returns details of a specific surah by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Surah ID
+      responses:
+        '200':
+          description: Successfully retrieved surah
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Surah'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /surahs/{id}/ayahs:
+    get:
+      tags:
+        - Surahs
+      summary: Get ayahs for a surah
+      description: Returns all ayahs (verses) for a specific surah
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Surah ID
+        - name: language
+          in: query
+          schema:
+            type: string
+            example: en
+          description: Filter translations by language code
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 300
+          description: Maximum number of ayahs
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Number of ayahs to skip
+      responses:
+        '200':
+          description: Successfully retrieved ayahs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      surah:
+                        $ref: '#/components/schemas/Surah'
+                      ayahs:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Ayah'
+
+  /ayahs/{id}:
+    get:
+      tags:
+        - Ayahs
+      summary: Get a specific ayah by ID
+      description: Returns details of a specific ayah
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Ayah ID
+      responses:
+        '200':
+          description: Successfully retrieved ayah
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/AyahDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /surahs/{surah_id}/ayahs/{ayah_number}:
+    get:
+      tags:
+        - Ayahs
+      summary: Get ayah by surah and number
+      description: Returns a specific ayah by surah ID and ayah number
+      parameters:
+        - name: surah_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: ayah_number
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successfully retrieved ayah
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/AyahDetail'
+
+  /ayahs/batch:
+    post:
+      tags:
+        - Ayahs
+      summary: Get multiple ayahs by references
+      description: Returns multiple ayahs using surah:ayah format (e.g., "1:1", "2:255")
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                references:
+                  type: array
+                  items:
+                    type: string
+                  example: ["1:1", "1:2", "2:255"]
+                language:
+                  type: string
+                  example: en
+      responses:
+        '200':
+          description: Successfully retrieved ayahs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AyahDetail'
+
+  /random:
+    get:
+      tags:
+        - Special
+      summary: Get a random ayah
+      description: Returns a random ayah with optional filters
+      parameters:
+        - name: language
+          in: query
+          schema:
+            type: string
+            example: en
+        - name: translator
+          in: query
+          schema:
+            type: string
+        - name: topic
+          in: query
+          schema:
+            type: string
+        - name: surah
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successfully retrieved random ayah
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/AyahDetail'
+
+  /daily:
+    get:
+      tags:
+        - Special
+      summary: Get the daily ayah
+      description: Returns a deterministic ayah based on the current date (cached for 24 hours)
+      responses:
+        '200':
+          description: Successfully retrieved daily ayah
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/AyahDetail'
+              example:
+                data:
+                  id: 5
+                  ayah_number: 5
+                  global_number: 5
+                  arabic_text: "إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ"
+                  surah:
+                    id: 1
+                    chapter_number: 1
+                    name_ar: "الفاتحة"
+                    name_en: "Al-Fatiha"
+                    revelation_type: "Meccan"
+
+  /search:
+    get:
+      tags:
+        - Search
+      summary: Search ayahs and translations
+      description: Full-text search across Arabic text and translations
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Search query
+        - name: language
+          in: query
+          schema:
+            type: string
+        - name: translator
+          in: query
+          schema:
+            type: string
+        - name: surah
+          in: query
+          schema:
+            type: integer
+        - name: topic
+          in: query
+          schema:
+            type: string
+        - name: revelation
+          in: query
+          schema:
+            type: string
+            enum: [Meccan, Medinan]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /translations:
+    get:
+      tags:
+        - Translations
+      summary: List all translators
+      description: Returns a list of all available translators
+      responses:
+        '200':
+          description: Successfully retrieved translators
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Translator'
+
+  /translations/{language}:
+    get:
+      tags:
+        - Translations
+      summary: Get translators by language
+      description: Returns translators for a specific language
+      parameters:
+        - name: language
+          in: path
+          required: true
+          schema:
+            type: string
+          example: en
+      responses:
+        '200':
+          description: Successfully retrieved translators
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Translator'
+
+  /ayahs/{id}/translations:
+    get:
+      tags:
+        - Translations
+      summary: Get translations for an ayah
+      description: Returns all translations for a specific ayah
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: language
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved translations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Translation'
+
+  /ayahs/{id}/tafsir:
+    get:
+      tags:
+        - Tafsir
+      summary: Get tafsir for an ayah
+      description: Returns tafsir (exegesis) for a specific ayah
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: language
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved tafsir
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Tafsir'
+
+  /tafsir/authors:
+    get:
+      tags:
+        - Tafsir
+      summary: List all tafsir authors
+      description: Returns a list of all available tafsir authors
+      responses:
+        '200':
+          description: Successfully retrieved authors
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: string
+
+  /reciters:
+    get:
+      tags:
+        - Audio
+      summary: List all reciters
+      description: Returns a list of all available reciters
+      responses:
+        '200':
+          description: Successfully retrieved reciters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: string
+
+  /audio/{id}:
+    get:
+      tags:
+        - Audio
+      summary: Get audio for an ayah
+      description: Returns audio recitations for a specific ayah
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: reciter
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved audio
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Audio'
+
+  /surahs/{id}/audio:
+    get:
+      tags:
+        - Audio
+      summary: Get audio for a surah
+      description: Returns audio recitations for all ayahs in a surah
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: reciter
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved audio
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Audio'
+
+  /topics:
+    get:
+      tags:
+        - Topics
+      summary: List all topics
+      description: Returns a list of all available topics
+      responses:
+        '200':
+          description: Successfully retrieved topics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Topic'
+
+  /topics/{slug}:
+    get:
+      tags:
+        - Topics
+      summary: Get ayahs by topic
+      description: Returns all ayahs associated with a specific topic
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+          example: guidance
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Successfully retrieved ayahs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      topic:
+                        $ref: '#/components/schemas/Topic'
+                      ayahs:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/AyahDetail'
+
+  /languages:
+    get:
+      tags:
+        - Metadata
+      summary: List available languages
+      description: Returns all available translation languages
+      responses:
+        '200':
+          description: Successfully retrieved languages
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        language_code:
+                          type: string
+                        count:
+                          type: integer
+
+  /stats:
+    get:
+      tags:
+        - Metadata
+      summary: Get API statistics
+      description: Returns database statistics (cached for 1 hour)
+      responses:
+        '200':
+          description: Successfully retrieved statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Statistics'
+
+  /metadata:
+    get:
+      tags:
+        - Metadata
+      summary: Get API metadata
+      description: Returns API version, features, and statistics
+      responses:
+        '200':
+          description: Successfully retrieved metadata
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Metadata'
+              example:
+                data:
+                  api_version: "1.0.0"
+                  total_surahs: 114
+                  total_ayahs: 6236
+                  available_languages:
+                    - language_code: "en"
+                      count: 8
+                    - language_code: "bs"
+                      count: 8
+                  supported_features:
+                    - "random_verse"
+                    - "daily_verse"
+                    - "search"
+                    - "translations"
+                    - "tafsir"
+                    - "audio"
+                    - "topics"
+                    - "batch_retrieval"
+
+  /featured:
+    get:
+      tags:
+        - Special
+      summary: Get featured ayahs
+      description: Returns famous verses (Ayatul Kursi, last 2 verses of Al-Baqarah, etc.)
+      responses:
+        '200':
+          description: Successfully retrieved featured ayahs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AyahDetail'
+
+components:
+  schemas:
+    Surah:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        chapter_number:
+          type: integer
+          example: 1
+        name_ar:
+          type: string
+          example: "الفاتحة"
+        name_en:
+          type: string
+          example: "Al-Fatiha"
+        name_bs:
+          type: string
+          example: "El-Fatiha"
+        revelation_type:
+          type: string
+          enum: [Meccan, Medinan]
+          example: "Meccan"
+        verses_count:
+          type: integer
+          example: 7
+
+    Ayah:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        ayah_number:
+          type: integer
+          example: 1
+        global_number:
+          type: integer
+          example: 1
+          description: Global ayah number from 1 to 6236
+        arabic_text:
+          type: string
+          example: "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ"
+        translations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Translation'
+          description: Only included when preloaded
+
+    AyahDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+        ayah_number:
+          type: integer
+        global_number:
+          type: integer
+        arabic_text:
+          type: string
+        surah:
+          $ref: '#/components/schemas/SurahSimple'
+        translations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Translation'
+        tafsirs:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tafsir'
+        audio:
+          type: array
+          items:
+            $ref: '#/components/schemas/Audio'
+
+    SurahSimple:
+      type: object
+      properties:
+        id:
+          type: integer
+        chapter_number:
+          type: integer
+        name_ar:
+          type: string
+        name_en:
+          type: string
+        name_bs:
+          type: string
+        revelation_type:
+          type: string
+
+    Translation:
+      type: object
+      properties:
+        id:
+          type: integer
+        language_code:
+          type: string
+          example: "en"
+          minLength: 2
+          maxLength: 2
+          description: ISO 639-1 language code
+        translator:
+          type: string
+          example: "Sahih International"
+        text:
+          type: string
+          example: "In the name of Allah, the Entirely Merciful, the Especially Merciful."
+
+    Tafsir:
+      type: object
+      properties:
+        id:
+          type: integer
+        author:
+          type: string
+          example: "Ibn Kathir"
+        language_code:
+          type: string
+          example: "en"
+        text:
+          type: string
+          description: The tafsir (exegesis) text
+
+    Audio:
+      type: object
+      properties:
+        id:
+          type: integer
+        reciter:
+          type: string
+          example: "Mishary Rashid Alafasy"
+        audio_url:
+          type: string
+          format: uri
+          example: "https://example.com/audio/001001.mp3"
+        duration:
+          type: integer
+          nullable: true
+          description: Duration in seconds
+
+    Topic:
+      type: object
+      properties:
+        id:
+          type: integer
+        slug:
+          type: string
+          example: "guidance"
+          pattern: "^[a-z0-9-]+$"
+        name:
+          type: string
+          example: "Guidance"
+
+    Translator:
+      type: object
+      properties:
+        translator:
+          type: string
+          example: "Sahih International"
+        language_code:
+          type: string
+          example: "en"
+        count:
+          type: integer
+          example: 6236
+          description: Number of translations by this translator
+
+    SearchResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/AyahDetail'
+            metadata:
+              type: object
+              properties:
+                total:
+                  type: integer
+                  description: Total number of results
+                page:
+                  type: integer
+                  description: Current page number
+                per_page:
+                  type: integer
+                  description: Results per page
+                total_pages:
+                  type: integer
+                  description: Total number of pages
+
+    Statistics:
+      type: object
+      properties:
+        total_surahs:
+          type: integer
+          example: 114
+        total_ayahs:
+          type: integer
+          example: 6236
+        total_translations:
+          type: integer
+        meccan_surahs:
+          type: integer
+          example: 86
+        medinan_surahs:
+          type: integer
+          example: 28
+
+    Metadata:
+      type: object
+      properties:
+        api_version:
+          type: string
+          example: "1.0.0"
+        total_surahs:
+          type: integer
+          example: 114
+        total_ayahs:
+          type: integer
+          example: 6236
+        available_languages:
+          type: array
+          items:
+            type: object
+            properties:
+              language_code:
+                type: string
+              count:
+                type: integer
+        available_translators:
+          type: array
+          items:
+            type: object
+            properties:
+              translator:
+                type: string
+              language_code:
+                type: string
+              count:
+                type: integer
+        available_reciters:
+          type: array
+          items:
+            type: string
+        available_tafsir_authors:
+          type: array
+          items:
+            type: string
+        supported_features:
+          type: array
+          items:
+            type: string
+          example:
+            - "random_verse"
+            - "daily_verse"
+            - "search"
+            - "translations"
+            - "tafsir"
+            - "audio"
+            - "topics"
+            - "batch_retrieval"
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "not_found"
+            message:
+              type: string
+              example: "Resource not found"
+
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "not_found"
+              message: "Resource not found"
+    
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "bad_request"
+              message: "Invalid parameters"

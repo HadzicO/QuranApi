@@ -43,5 +43,6 @@ defmodule QuranApiWeb.Endpoint do
   plug Plug.MethodOverride
   plug Plug.Head
   plug Plug.Session, @session_options
+  plug QuranApiWeb.Plugs.CORS
   plug QuranApiWeb.Router
 end
