@@ -3,14 +3,57 @@ defmodule QuranApiWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+    plug QuranApiWeb.Plugs.CORS
   end
 
-  scope "/v1", QuranApiWeb do
+  scope "/api/v1", QuranApiWeb do
     pipe_through :api
 
-    get "/quotes", QuotesController, :get_random_quote
-    get "/quotes/:id", QuotesController, :get_quote_with_translation
-    post "/chapters", ChaptersController, :get_chapter_by_name
+    # Surahs
+    get "/surahs", SurahController, :index
+    get "/surahs/:id", SurahController, :show
+    get "/surahs/:id/ayahs", SurahController, :ayahs
+
+    # Ayahs
+    get "/ayahs/:id", AyahController, :show
+    get "/surahs/:surah_id/ayahs/:ayah_number", AyahController, :show_by_surah
+    post "/ayahs/batch", AyahController, :batch
+
+    # Random & Daily
+    get "/random", RandomController, :show
+    get "/daily", DailyController, :show
+
+    # Search
+    get "/search", SearchController, :index
+
+    # Translations
+    get "/translations", TranslationController, :index
+    get "/translations/:language", TranslationController, :show
+    get "/ayahs/:id/translations", TranslationController, :ayah_translations
+
+    # Tafsir
+    get "/ayahs/:id/tafsir", TafsirController, :show
+    get "/tafsir/authors", TafsirController, :authors
+
+    # Audio
+    get "/reciters", AudioController, :reciters
+    get "/audio/:id", AudioController, :show
+    get "/surahs/:id/audio", AudioController, :surah_audio
+
+    # Topics
+    get "/topics", TopicController, :index
+    get "/topics/:slug", TopicController, :show
+
+    # Metadata
+    get "/languages", MetadataController, :languages
+    get "/stats", MetadataController, :stats
+    get "/metadata", MetadataController, :metadata
+
+    # Featured
+    get "/featured", FeaturedController, :index
+
+    # Handle OPTIONS preflight requests
+    match :options, "/*path", CorsController, :preflight
   end
 
   # Enable Swoosh mailbox preview in development
