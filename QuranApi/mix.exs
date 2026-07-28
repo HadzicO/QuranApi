@@ -13,7 +13,9 @@ defmodule QuranApi.MixProject do
       dialyzer: [
         # Put the project-level PLT in the priv/ directory (instead of the default _build/ location)
         plt_file: {:no_warn, "priv/plts/project.plt"},
-        plt_add_apps: [:ex_unit]
+        plt_add_apps: [:ex_unit],
+        # Ignore warnings from Mix tasks (Mix.Task behaviour not available during analysis)
+        ignore_warnings: ".dialyzer_ignore.exs"
       ]
     ]
   end
@@ -50,7 +52,11 @@ defmodule QuranApi.MixProject do
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
-      {:credo, "~> 1.7", only: [:dev, :test], runtime: false}
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      # Authentication & Security
+      {:guardian, "~> 2.3"},
+      {:argon2_elixir, "~> 4.0"},
+      {:hammer, "~> 6.1"}
     ]
   end
 

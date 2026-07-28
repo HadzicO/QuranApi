@@ -41,6 +41,15 @@ config :phoenix, :json_library, Jason
 
 config :quran_api, dev_routes: true
 
+# Guardian configuration for JWT authentication
+config :quran_api, QuranApi.Auth.Guardian,
+  issuer: "quran_api",
+  secret_key: "your-secret-key-here-replace-in-runtime"
+
+# Hammer rate limiting configuration
+config :hammer,
+  backend: {Hammer.Backend.ETS, [expiry_ms: 60_000 * 60 * 4, cleanup_interval_ms: 60_000 * 10]}
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"

@@ -29,7 +29,7 @@ defmodule QuranApi.Quran.AyahTest do
       assert changeset.valid?
     end
 
-    test "requires all fields", %{surah: surah} do
+    test "requires all fields", %{surah: _surah} do
       changeset = Ayah.changeset(%Ayah{}, %{})
       refute changeset.valid?
 

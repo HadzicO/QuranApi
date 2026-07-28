@@ -846,4 +846,36 @@ defmodule QuranApi.Quran do
       ]
     }
   end
+
+  # ==================== Count Functions for Admin Dashboard ====================
+
+  @doc """
+  Returns the count of surahs.
+  """
+  @spec count_surahs() :: integer()
+  def count_surahs, do: Repo.aggregate(Surah, :count, :id)
+
+  @doc """
+  Returns the count of ayahs.
+  """
+  @spec count_ayahs() :: integer()
+  def count_ayahs, do: Repo.aggregate(Ayah, :count, :id)
+
+  @doc """
+  Returns the count of translations.
+  """
+  @spec count_translations() :: integer()
+  def count_translations, do: Repo.aggregate(Translation, :count, :id)
+
+  @doc """
+  Returns the count of topics.
+  """
+  @spec count_topics() :: integer()
+  def count_topics, do: Repo.aggregate(Topic, :count, :id)
+
+  @doc """
+  Returns the count of audio files.
+  """
+  @spec count_audio() :: integer()
+  def count_audio, do: Repo.aggregate(Audio, :count, :id)
 end

@@ -5,7 +5,7 @@ info:
   description: |
     Production-ready RESTful API for accessing Quranic data with translations, tafsir, audio, and thematic categorization.
     
-    **Features:**
+    **Public API Features:**
     - 114 Surahs with Arabic text
     - 6236 Ayahs with translations
     - Multi-language support
@@ -15,6 +15,16 @@ info:
     - Full-text search
     - Daily verse (cached)
     - Random verse generation
+    
+    **Admin Panel Features:**
+    - JWT-based authentication (Guardian)
+    - Role-based access control (admin, editor, readonly)
+    - User management with CRUD operations
+    - Content revision and approval workflow
+    - Version history tracking
+    - Audit logging for all administrative actions
+    - Notification system
+    - Dashboard with comprehensive statistics
     
   contact:
     name: API Support
@@ -45,6 +55,16 @@ tags:
     description: Topic-based categorization
   - name: Metadata
     description: API metadata and statistics
+  - name: Admin - Authentication
+    description: Admin authentication endpoints (login, logout, token refresh)
+  - name: Admin - Users
+    description: Admin user management endpoints (CRUD operations, role management)
+  - name: Admin - Dashboard
+    description: Admin dashboard statistics
+  - name: Admin - Revisions
+    description: Content revision and approval workflow
+  - name: Admin - Notifications
+    description: Admin notification management
 
 paths:
   /surahs:
@@ -725,6 +745,812 @@ paths:
                     items:
                       $ref: '#/components/schemas/AyahDetail'
 
+  # Admin Endpoints
+  /admin/login:
+    post:
+      tags:
+        - Admin - Authentication
+      summary: Admin login
+      description: Authenticate admin user and receive JWT access and refresh tokens
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "admin@example.com"
+                password:
+                  type: string
+                  format: password
+                  example: "YourPassword123"
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /admin/logout:
+    post:
+      tags:
+        - Admin - Authentication
+      summary: Admin logout
+      description: Logout admin user (client should discard tokens)
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Logged out successfully"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /admin/me:
+    get:
+      tags:
+        - Admin - Authentication
+      summary: Get current user
+      description: Returns the currently authenticated admin user's information
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Current user retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /admin/refresh:
+    post:
+      tags:
+        - Admin - Authentication
+      summary: Refresh access token
+      description: Use refresh token to get a new access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refresh_token
+              properties:
+                refresh_token:
+                  type: string
+                  example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        '401':
+          description: Invalid refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /admin/users:
+    get:
+      tags:
+        - Admin - Users
+      summary: List all users
+      description: Returns paginated list of all users (admin only)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: role
+          in: query
+          schema:
+            type: string
+            enum: [admin, editor, readonly]
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, inactive, suspended]
+      responses:
+        '200':
+          description: Users retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    post:
+      tags:
+        - Admin - Users
+      summary: Create new user
+      description: Create a new admin/editor/readonly user (admin only)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - name
+                - role
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "editor@example.com"
+                password:
+                  type: string
+                  format: password
+                  example: "SecurePass123"
+                name:
+                  type: string
+                  example: "John Doe"
+                role:
+                  type: string
+                  enum: [admin, editor, readonly]
+                  example: "editor"
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/users/{id}:
+    get:
+      tags:
+        - Admin - Users
+      summary: Get user by ID
+      description: Returns a single user's information
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: User retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags:
+        - Admin - Users
+      summary: Update user
+      description: Update user information (admin only)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Jane Doe"
+                email:
+                  type: string
+                  format: email
+                  example: "jane@example.com"
+      responses:
+        '200':
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - Admin - Users
+      summary: Delete user
+      description: Delete a user (admin only)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: User deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /admin/users/{id}/change_role:
+    put:
+      tags:
+        - Admin - Users
+      summary: Change user role
+      description: Change user's role (admin only)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - role
+              properties:
+                role:
+                  type: string
+                  enum: [admin, editor, readonly]
+                  example: "editor"
+      responses:
+        '200':
+          description: Role changed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /admin/users/{id}/change_status:
+    put:
+      tags:
+        - Admin - Users
+      summary: Change user status
+      description: Activate, deactivate, or suspend user (admin only)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum: [active, inactive, suspended]
+                  example: "suspended"
+      responses:
+        '200':
+          description: Status changed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /admin/users/{id}/reset_password:
+    post:
+      tags:
+        - Admin - Users
+      summary: Reset user password
+      description: Reset user's password to a random value and return it (admin only)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Password reset successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Password reset successfully"
+                  new_password:
+                    type: string
+                    example: "TempPass123XYZ"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /admin/dashboard:
+    get:
+      tags:
+        - Admin - Dashboard
+      summary: Get dashboard statistics
+      description: Returns comprehensive statistics for admin dashboard
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Dashboard statistics retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/DashboardStats'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /admin/revisions:
+    get:
+      tags:
+        - Admin - Revisions
+      summary: List all revisions
+      description: Returns paginated list of content revisions
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, pending_review, approved, rejected, published]
+        - name: entity_type
+          in: query
+          schema:
+            type: string
+            example: "translation"
+      responses:
+        '200':
+          description: Revisions retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Revision'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags:
+        - Admin - Revisions
+      summary: Create new revision
+      description: Create a new content revision (draft)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - entity_type
+                - entity_id
+                - changes
+              properties:
+                entity_type:
+                  type: string
+                  example: "translation"
+                entity_id:
+                  type: integer
+                  example: 123
+                field_name:
+                  type: string
+                  example: "text"
+                old_value:
+                  type: string
+                  example: "Old translation text"
+                new_value:
+                  type: string
+                  example: "New translation text"
+                changes:
+                  type: object
+                  example: {"text": "Updated translation"}
+                reason:
+                  type: string
+                  example: "Fixed translation accuracy"
+      responses:
+        '201':
+          description: Revision created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Revision'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /admin/revisions/{id}/submit:
+    post:
+      tags:
+        - Admin - Revisions
+      summary: Submit revision for review
+      description: Submit a draft revision for admin review (editor)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Revision submitted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Revision'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /admin/revisions/{id}/approve:
+    post:
+      tags:
+        - Admin - Revisions
+      summary: Approve revision
+      description: Approve a pending revision (admin only)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                notes:
+                  type: string
+                  example: "Approved - translation looks good"
+      responses:
+        '200':
+          description: Revision approved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Revision'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /admin/revisions/{id}/reject:
+    post:
+      tags:
+        - Admin - Revisions
+      summary: Reject revision
+      description: Reject a pending revision (admin only)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reason
+              properties:
+                reason:
+                  type: string
+                  example: "Translation needs more work"
+      responses:
+        '200':
+          description: Revision rejected successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Revision'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /admin/revisions/{id}/publish:
+    post:
+      tags:
+        - Admin - Revisions
+      summary: Publish revision
+      description: Publish an approved revision to production (admin only)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Revision published successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Revision'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /admin/notifications:
+    get:
+      tags:
+        - Admin - Notifications
+      summary: List user notifications
+      description: Returns paginated list of notifications for the authenticated user
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: unread_only
+          in: query
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Notifications retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Notification'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /admin/notifications/{id}/mark_read:
+    post:
+      tags:
+        - Admin - Notifications
+      summary: Mark notification as read
+      description: Mark a single notification as read
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Notification marked as read
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Notification'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /admin/notifications/mark_all_read:
+    post:
+      tags:
+        - Admin - Notifications
+      summary: Mark all notifications as read
+      description: Mark all user's notifications as read
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: All notifications marked as read
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "All notifications marked as read"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
 components:
   schemas:
     Surah:
@@ -992,6 +1818,230 @@ components:
             - "topics"
             - "batch_retrieval"
 
+    # Admin Schemas
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        email:
+          type: string
+          format: email
+          example: "admin@example.com"
+        name:
+          type: string
+          example: "Admin User"
+        role:
+          type: string
+          enum: [admin, editor, readonly]
+          example: "admin"
+        status:
+          type: string
+          enum: [active, inactive, suspended]
+          example: "active"
+        inserted_at:
+          type: string
+          format: date-time
+          example: "2026-07-04T10:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2026-07-04T10:00:00Z"
+
+    LoginResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          description: "JWT access token (expires in 1 hour)"
+        refresh_token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          description: "JWT refresh token (expires in 7 days)"
+        user:
+          $ref: '#/components/schemas/User'
+
+    Revision:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        entity_type:
+          type: string
+          example: "translation"
+        entity_id:
+          type: integer
+          example: 123
+        field_name:
+          type: string
+          example: "text"
+        old_value:
+          type: string
+          nullable: true
+          example: "Old translation text"
+        new_value:
+          type: string
+          example: "New translation text"
+        status:
+          type: string
+          enum: [draft, pending_review, approved, rejected, published]
+          example: "pending_review"
+        reason:
+          type: string
+          example: "Fixed translation accuracy"
+        changes:
+          type: object
+          example: {"text": "Updated translation"}
+        submitted_by_id:
+          type: integer
+          example: 5
+        reviewed_by_id:
+          type: integer
+          nullable: true
+          example: 1
+        review_notes:
+          type: string
+          nullable: true
+          example: "Approved - looks good"
+        submitted_at:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2026-07-04T10:00:00Z"
+        reviewed_at:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2026-07-04T11:00:00Z"
+        published_at:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2026-07-04T12:00:00Z"
+        inserted_at:
+          type: string
+          format: date-time
+          example: "2026-07-04T09:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2026-07-04T12:00:00Z"
+
+    Notification:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        user_id:
+          type: integer
+          example: 5
+        type:
+          type: string
+          example: "revision_approved"
+        title:
+          type: string
+          example: "Revision Approved"
+        message:
+          type: string
+          example: "Your translation revision for ayah 1:1 has been approved"
+        entity_type:
+          type: string
+          nullable: true
+          example: "revision"
+        entity_id:
+          type: integer
+          nullable: true
+          example: 123
+        read:
+          type: boolean
+          example: false
+        inserted_at:
+          type: string
+          format: date-time
+          example: "2026-07-04T11:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2026-07-04T11:00:00Z"
+
+    DashboardStats:
+      type: object
+      properties:
+        users:
+          type: object
+          properties:
+            total:
+              type: integer
+              example: 15
+            active:
+              type: integer
+              example: 12
+            admins:
+              type: integer
+              example: 3
+            editors:
+              type: integer
+              example: 8
+            readonly:
+              type: integer
+              example: 4
+        revisions:
+          type: object
+          properties:
+            total:
+              type: integer
+              example: 150
+            pending:
+              type: integer
+              example: 10
+            approved:
+              type: integer
+              example: 120
+            rejected:
+              type: integer
+              example: 5
+            published:
+              type: integer
+              example: 110
+        content:
+          type: object
+          properties:
+            surahs:
+              type: integer
+              example: 114
+            ayahs:
+              type: integer
+              example: 6236
+            translations:
+              type: integer
+              example: 12000
+            topics:
+              type: integer
+              example: 500
+            audio_files:
+              type: integer
+              example: 6236
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+        per_page:
+          type: integer
+          example: 20
+        total_pages:
+          type: integer
+          example: 5
+        total_entries:
+          type: integer
+          example: 85
+
     Error:
       type: object
       properties:
@@ -1027,3 +2077,45 @@ components:
             error:
               code: "bad_request"
               message: "Invalid parameters"
+
+    Unauthorized:
+      description: Authentication required or token invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "unauthorized"
+              message: "Invalid or missing authentication token"
+
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "forbidden"
+              message: "You do not have permission to perform this action"
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT authentication using Guardian. 
+        
+        **To authenticate:**
+        1. POST to /admin/login with email and password
+        2. Receive access_token and refresh_token
+        3. Use access_token in Authorization header: `Bearer <token>`
+        4. Access token expires in 1 hour
+        5. Use refresh token to get new access token via /admin/refresh
+        
+        **Roles:**
+        - **admin**: Full access to all endpoints
+        - **editor**: Can create/submit revisions, view users
+        - **readonly**: Can only view data

@@ -65,6 +65,19 @@ if config_env() == :prod do
     ],
     secret_key_base: secret_key_base
 
+  # Guardian JWT secret key
+  guardian_secret_key =
+    System.get_env("GUARDIAN_SECRET_KEY") ||
+      System.get_env("SECRET_KEY_BASE") ||
+      raise """
+      environment variable GUARDIAN_SECRET_KEY is missing.
+      You can generate one by calling: mix phx.gen.secret
+      """
+
+  config :quran_api, QuranApi.Auth.Guardian,
+    issuer: "quran_api",
+    secret_key: guardian_secret_key
+
   # ## SSL Support
   #
   # To get SSL working, you will need to add the `https` key
