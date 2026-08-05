@@ -52,6 +52,11 @@ config :quran_api, QuranApiWeb.Endpoint,
 # Enable dev routes for dashboard and mailbox
 config :quran_api, dev_routes: true
 
+# Guardian configuration for development
+config :quran_api, QuranApi.Auth.Guardian,
+  issuer: "quran_api",
+  secret_key: "dev_secret_key_replace_in_production_wXdQvTYuI4KzHgNmBpCrL3JqW9RsObEa"
+
 # Do not include metadata nor timestamps in development logs
 config :logger, :console, format: "[$level] $message\n"
 

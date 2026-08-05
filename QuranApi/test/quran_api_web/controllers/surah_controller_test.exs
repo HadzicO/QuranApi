@@ -18,7 +18,7 @@ defmodule QuranApiWeb.SurahControllerTest do
   end
 
   describe "GET /api/v1/surahs" do
-    test "lists all surahs", %{conn: conn, surah: surah} do
+    test "lists all surahs", %{conn: conn, surah: _surah} do
       conn = get(conn, ~p"/api/v1/surahs")
       assert %{"data" => surahs} = json_response(conn, 200)
       assert length(surahs) >= 1
@@ -47,7 +47,7 @@ defmodule QuranApiWeb.SurahControllerTest do
 
   describe "GET /api/v1/surahs/:id/ayahs" do
     test "returns ayahs for a surah", %{conn: conn, surah: surah} do
-      ayah =
+      _ayah =
         QuranApi.Repo.insert!(%QuranApi.Quran.Ayah{
           surah_id: surah.id,
           ayah_number: 1,

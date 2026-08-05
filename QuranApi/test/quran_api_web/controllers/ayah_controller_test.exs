@@ -53,7 +53,7 @@ defmodule QuranApiWeb.AyahControllerTest do
   end
 
   describe "POST /api/v1/ayahs/batch" do
-    test "returns multiple ayahs by references", %{conn: conn, surah: surah, ayah: ayah} do
+    test "returns multiple ayahs by references", %{conn: conn, surah: _surah, ayah: _ayah} do
       conn = post(conn, ~p"/api/v1/ayahs/batch", %{"references" => ["2:255"]})
       assert %{"data" => ayahs} = json_response(conn, 200)
       assert length(ayahs) == 1

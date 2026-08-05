@@ -29,5 +29,10 @@ config :swoosh, :api_client, false
 # Print only warnings and errors during test
 config :logger, level: :warning
 
+# Guardian configuration for test
+config :quran_api, QuranApi.Auth.Guardian,
+  issuer: "quran_api",
+  secret_key: "test_secret_key_for_testing_jwt_tokens_wXdQvTYuI4KzHgNmB"
+
 # Initialize plugs at runtime for faster test compilation
 config :phoenix, :plug_init_mode, :runtime

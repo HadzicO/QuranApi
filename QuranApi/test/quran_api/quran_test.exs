@@ -15,7 +15,7 @@ defmodule QuranApi.QuranTest do
     }
 
     test "list_surahs/1 returns all surahs" do
-      surah = insert(:surah, %{})
+      _surah = insert(:surah, %{})
       assert length(Quran.list_surahs()) >= 1
     end
 
@@ -48,7 +48,7 @@ defmodule QuranApi.QuranTest do
     end
 
     test "list_ayahs_by_surah/2 returns all ayahs for a surah", %{surah: surah} do
-      ayah = insert(:ayah, surah: surah)
+      _ayah = insert(:ayah, surah: surah)
       ayahs = Quran.list_ayahs_by_surah(surah.id)
       assert length(ayahs) >= 1
     end
@@ -96,13 +96,13 @@ defmodule QuranApi.QuranTest do
     end
 
     test "get_ayah_translations/2 returns translations for an ayah", %{ayah: ayah} do
-      translation = insert(:translation, ayah: ayah)
+      _translation = insert(:translation, ayah: ayah)
       translations = Quran.get_ayah_translations(ayah.id)
       assert length(translations) >= 1
     end
 
     test "list_languages/0 returns available languages", %{ayah: ayah} do
-      insert(:translation, ayah: ayah, language_code: "en")
+      _translation = insert(:translation, ayah: ayah, language_code: "en")
       languages = Quran.list_languages()
       assert length(languages) >= 1
     end
@@ -122,7 +122,7 @@ defmodule QuranApi.QuranTest do
     end
 
     test "list_topics/0 returns all topics" do
-      topic = insert(:topic, %{})
+      _topic = insert(:topic, %{})
       topics = Quran.list_topics()
       assert length(topics) >= 1
     end
@@ -148,12 +148,12 @@ defmodule QuranApi.QuranTest do
       {:ok, surah: surah, ayah: ayah, translation: translation}
     end
 
-    test "search/1 finds ayahs by Arabic text", %{ayah: ayah} do
+    test "search/1 finds ayahs by Arabic text", %{ayah: _ayah} do
       result = Quran.search(q: "اللَّهِ", page: 1, per_page: 10)
       assert result.total >= 1
     end
 
-    test "search/1 finds ayahs by translation", %{translation: translation} do
+    test "search/1 finds ayahs by translation", %{translation: _translation} do
       result = Quran.search(q: "Allah", language: "en", page: 1, per_page: 10)
       assert result.total >= 1
     end

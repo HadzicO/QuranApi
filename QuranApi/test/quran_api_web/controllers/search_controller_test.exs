@@ -52,7 +52,7 @@ defmodule QuranApiWeb.SearchControllerTest do
 
     test "supports pagination", %{conn: conn} do
       conn = get(conn, ~p"/api/v1/search?q=Allah&page=1&per_page=5")
-      assert %{"data" => results, "meta" => meta} = json_response(conn, 200)
+      assert %{"data" => _results, "meta" => meta} = json_response(conn, 200)
       assert meta["page"] == 1
       assert meta["per_page"] == 5
     end
