@@ -32,26 +32,26 @@ defmodule QuranApiWeb.SearchControllerTest do
     {:ok, surah: surah, ayah: ayah, translation: translation}
   end
 
-  describe "GET /api/v1/search" do
+  describe "GET /v1/search" do
     test "searches by query parameter", %{conn: conn} do
-      conn = get(conn, ~p"/api/v1/search?q=Allah")
+      conn = get(conn, ~p"/v1/search?q=Allah")
       assert %{"data" => results, "meta" => meta} = json_response(conn, 200)
       assert is_list(results)
       assert meta["total"] >= 0
     end
 
     test "requires query parameter", %{conn: conn} do
-      conn = get(conn, ~p"/api/v1/search")
+      conn = get(conn, ~p"/v1/search")
       assert %{"error" => _} = json_response(conn, 400)
     end
 
     test "supports language filter", %{conn: conn} do
-      conn = get(conn, ~p"/api/v1/search?q=Merciful&language=en")
+      conn = get(conn, ~p"/v1/search?q=Merciful&language=en")
       assert %{"data" => _results, "meta" => _meta} = json_response(conn, 200)
     end
 
     test "supports pagination", %{conn: conn} do
-      conn = get(conn, ~p"/api/v1/search?q=Allah&page=1&per_page=5")
+      conn = get(conn, ~p"/v1/search?q=Allah&page=1&per_page=5")
       assert %{"data" => results, "meta" => meta} = json_response(conn, 200)
       assert meta["page"] == 1
       assert meta["per_page"] == 5
