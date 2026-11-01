@@ -1,12 +1,35 @@
 defmodule QuranApiWeb.Router do
   use QuranApiWeb, :router
 
+  alias QuranApiWeb.Plugs.{AuthPlug, RolePlug}
+
   pipeline :api do
     plug :accepts, ["json"]
     plug QuranApiWeb.Plugs.CORS
   end
 
-  scope "/api/v1", QuranApiWeb do
+  pipeline :auth do
+    plug Guardian.Plug.Pipeline,
+      module: QuranApi.Guardian,
+      error_handler: QuranApiWeb.AuthErrorHandler
+
+    plug Guardian.Plug.VerifyHeader, realm: "Bearer"
+    plug Guardian.Plug.LoadResource, allow_blank: true
+  end
+
+  pipeline :authenticated do
+    plug AuthPlug
+  end
+
+  pipeline :admin_only do
+    plug RolePlug, ["admin"]
+  end
+
+  pipeline :content_manager do
+    plug RolePlug, ["admin", "content_writer", "content_reviewer"]
+  end
+
+  scope "/v1", QuranApiWeb do
     pipe_through :api
 
     # Surahs
@@ -54,6 +77,27 @@ defmodule QuranApiWeb.Router do
 
     # Handle OPTIONS preflight requests
     match :options, "/*path", CorsController, :preflight
+  end
+
+  scope "/v1", QuranApiWeb do
+    pipe_through [:api, :auth]
+
+    post "/login", AuthController, :login
+    post "/logout", AuthController, :logout
+  end
+
+  scope "/v1/admin", QuranApiWeb do
+    pipe_through [:api, :auth, :authenticated, :admin_only]
+
+    # Admin-only routes
+    resources "/users", UserController
+  end
+
+  scope "/v1/app", QuranApiWeb do
+    pipe_through [:api, :auth, :authenticated, :content_manager]
+
+    # Content management routes
+    # Add your content routes here
   end
 
   # Enable Swoosh mailbox preview in development

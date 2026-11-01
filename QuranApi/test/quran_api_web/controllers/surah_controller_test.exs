@@ -17,35 +17,35 @@ defmodule QuranApiWeb.SurahControllerTest do
     {:ok, surah: surah}
   end
 
-  describe "GET /api/v1/surahs" do
+  describe "GET /v1/surahs" do
     test "lists all surahs", %{conn: conn, surah: surah} do
-      conn = get(conn, ~p"/api/v1/surahs")
+      conn = get(conn, ~p"/v1/surahs")
       assert %{"data" => surahs} = json_response(conn, 200)
       assert length(surahs) >= 1
     end
 
     test "supports pagination", %{conn: conn} do
-      conn = get(conn, ~p"/api/v1/surahs?limit=5&offset=0")
+      conn = get(conn, ~p"/v1/surahs?limit=5&offset=0")
       assert %{"data" => surahs} = json_response(conn, 200)
       assert length(surahs) <= 5
     end
   end
 
-  describe "GET /api/v1/surahs/:id" do
+  describe "GET /v1/surahs/:id" do
     test "returns surah when id is valid", %{conn: conn, surah: surah} do
-      conn = get(conn, ~p"/api/v1/surahs/#{surah.id}")
+      conn = get(conn, ~p"/v1/surahs/#{surah.id}")
       assert %{"data" => data} = json_response(conn, 200)
       assert data["id"] == surah.id
       assert data["name_en"] == "Al-Fatiha"
     end
 
     test "returns 404 when id is invalid", %{conn: conn} do
-      conn = get(conn, ~p"/api/v1/surahs/999999")
+      conn = get(conn, ~p"/v1/surahs/999999")
       assert %{"errors" => _} = json_response(conn, 404)
     end
   end
 
-  describe "GET /api/v1/surahs/:id/ayahs" do
+  describe "GET /v1/surahs/:id/ayahs" do
     test "returns ayahs for a surah", %{conn: conn, surah: surah} do
       ayah =
         QuranApi.Repo.insert!(%QuranApi.Quran.Ayah{
@@ -55,13 +55,13 @@ defmodule QuranApiWeb.SurahControllerTest do
           arabic_text: "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ"
         })
 
-      conn = get(conn, ~p"/api/v1/surahs/#{surah.id}/ayahs")
+      conn = get(conn, ~p"/v1/surahs/#{surah.id}/ayahs")
       assert %{"data" => %{"surah" => _, "ayahs" => ayahs}} = json_response(conn, 200)
       assert length(ayahs) >= 1
     end
 
     test "returns 404 when surah does not exist", %{conn: conn} do
-      conn = get(conn, ~p"/api/v1/surahs/999999/ayahs")
+      conn = get(conn, ~p"/v1/surahs/999999/ayahs")
       assert %{"errors" => _} = json_response(conn, 404)
     end
   end
